@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 Quiz Master - Gamified Quiz</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 Quiz Master</h1>
+            <p>Test your knowledge and compete with others!</p>
+        </div>
+
+        <!-- Menu Screen -->
+        <div id="menu-screen" class="card menu-card">
+            <h2 class="menu-title">
+                ⚙️ Quiz Settings
+            </h2>
+            
+            <div class="form-group">
+                <label for="category-select">Category</label>
+                <select id="category-select" class="form-control">
+                    <option value="All">All Categories</option>
+                    <option value="HTML">HTML</option>
+                    <option value="Movies">Movies</option>
+                    <option value="Logic">Logic</option>
+                    <option value="Science">Science</option>
+                    <option value="Geography">Geography</option>
+                    <option value="History">History</option>
+                    <option value="Sports">Sports</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Music">Music</option>
+                    <option value="Literature">Literature</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="question-count">Number of Questions</label>
+                <select id="question-count" class="form-control">
+                    <option value="5">5 Questions</option>
+                    <option value="10" selected>10 Questions</option>
+                    <option value="15">15 Questions</option>
+                </select>
+            </div>
+
+            <div class="menu-actions">
+                <button id="start-quiz-btn" class="btn btn-full">
+                    ▶️ Start Quiz
+                </button>
+                <button id="view-leaderboard-btn" class="btn btn-outline btn-full">
+                    🏆 View Leaderboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="card quiz-card hidden">
+            <div class="question-header">
+                <div class="question-info">
+                    <span id="question-number" class="question-number">Question 1 of 10</span>
+                    <span id="category-badge" class="category-badge">Category</span>
+                </div>
+                <div class="score-display">
+                    ⚡ <span id="current-score">0</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="timer-container">
+                <div class="timer-icon">🕐</div>
+                <div id="timer-circle" class="timer-circle">15</div>
+                <div class="progress-bar timer-progress-bar">
+                    <div id="timer-progress" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div id="question-text" class="question-text">
+                    Loading question...
+                </div>
+
+                <div id="options-grid" class="options-grid">
+                    <!-- Options will be populated by JavaScript -->
+                </div>
+
+                <div id="result-animation" class="result-animation hidden">
+                    <div id="result-emoji" class="result-emoji">🎉</div>
+                    <div id="result-text" class="result-text">Correct!</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="results-screen" class="card results-card hidden">
+            <div id="results-emoji" class="results-main-emoji">🏆</div>
+            <h2 class="results-title">Quiz Complete!</h2>
+            <p id="motivational-message" class="motivational-message">
+                Great job! You're amazing!
+            </p>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div id="correct-answers" class="stat-number">0</div>
+                    <div class="stat-label">Correct</div>
+                </div>
+                <div class="stat-card">
+                    <div id="final-percentage" class="stat-number">0%</div>
+                    <div class="stat-label">Score</div>
+                </div>
+                <div class="stat-card">
+                    <div id="time-taken" class="stat-number">0:00</div>
+                    <div class="stat-label">Time</div>
+                </div>
+            </div>
+
+            <div id="badges-section" class="badges-container hidden">
+                <h3 class="badges-title">
+                    ⭐ Badges Earned!
+                </h3>
+                <div id="badges-grid" class="badges-grid">
+                    <!-- Badges will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="name-input-section" class="name-input-section hidden">
+                <input type="text" id="player-name" class="form-control" placeholder="Enter your name for leaderboard" maxlength="20">
+                <div class="name-input-actions">
+                    <button id="save-score-btn" class="btn">Save Score</button>
+                    <button id="cancel-save-btn" class="btn btn-outline">Cancel</button>
+                </div>
+            </div>
+
+            <div id="results-actions" class="results-actions">
+                <button id="restart-quiz-btn" class="btn">
+                    🔄 Try Again
+                </button>
+                <button id="share-results-btn" class="btn btn-outline">
+                    📤 Share Results
+                </button>
+                <button id="save-to-leaderboard-btn" class="btn btn-outline">
+                    🏆 Save to Leaderboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Leaderboard Screen -->
+        <div id="leaderboard-screen" class="card hidden">
+            <div class="leaderboard-header">
+                <h2 class="leaderboard-title">
+                    🏆 Leaderboard
+                </h2>
+                <button id="back-to-menu-btn" class="btn btn-outline">
+                    ← Back to Menu
+                </button>
+            </div>
+            
+            <div id="leaderboard-content">
+                <!-- Leaderboard items will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Question Bank with randomizable options - 15 questions per category
+        const questionBank = [
+            // HTML Questions (15)
+            {
+                id: 1,
+                category: "HTML",
+                question: "What does HTML stand for?",
+                options: [
+                    "Hyper Text Markup Language",
+                    "High Tech Modern Language", 
+                    "Home Tool Markup Language",
+                    "Hyperlink and Text Markup Language"
+                ],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 2,
+                category: "HTML",
+                question: "Which HTML element is used for the largest heading?",
+                options: ["<h6>", "<h1>", "<heading>", "<header>"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 3,
+                category: "HTML",
+                question: "What is the correct HTML element for inserting a line break?",
+                options: ["<break>", "<br>", "<lb>", "<newline>"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 4,
+                category: "HTML",
+                question: "Which attribute is used to specify the URL of a link?",
+                options: ["src", "href", "link", "url"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 5,
+                category: "HTML",
+                question: "What does the <meta> tag define?",
+                options: ["Metadata about the HTML document", "Main content", "Menu items", "Media files"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 6,
+                category: "HTML",
+                question: "Which HTML element is used to define important text?",
+                options: ["<important>", "<b>", "<strong>", "<i>"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 7,
+                category: "HTML",
+                question: "What is the correct HTML for creating a hyperlink?",
+                options: ["<a url='http://www.example.com'>Example</a>", "<a href='http://www.example.com'>Example</a>", "<a>http://www.example.com</a>", "<a name='http://www.example.com'>Example</a>"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 8,
+                category: "HTML",
+                question: "Which character is used to indicate an end tag?",
+                options: ["<", "*", "/", "^"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 9,
+                category: "HTML",
+                question: "What is the correct HTML for making a checkbox?",
+                options: ["<input type='check'>", "<input type='checkbox'>", "<checkbox>", "<check>"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 10,
+                category: "HTML",
+                question: "What is the correct HTML for making a text input field?",
+                options: ["<input type='textfield'>", "<textinput type='text'>", "<input type='text'>", "<textfield>"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 11,
+                category: "HTML",
+                question: "Which HTML attribute specifies an alternate text for an image?",
+                options: ["longdesc", "alt", "src", "title"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 12,
+                category: "HTML",
+                question: "What is the correct HTML for making a drop-down list?",
+                options: ["<input type='dropdown'>", "<select>", "<input type='list'>", "<list>"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 13,
+                category: "HTML",
+                question: "What is the correct HTML for inserting an image?",
+                options: ["<img href='image.gif' alt='MyImage'>", "<img>image.gif</img>", "<image src='image.gif' alt='MyImage'>", "<img src='image.gif' alt='MyImage'>"],
+                correctAnswer: 3,
+                difficulty: "easy"
+            },
+            {
+                id: 14,
+                category: "HTML",
+                question: "Which HTML element defines the title of a document?",
+                options: ["<meta>", "<title>", "<head>", "<header>"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 15,
+                category: "HTML",
+                question: "What does the <tbody> element represent?",
+                options: ["Table body", "Text body", "Table border", "Table background"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+
+            // Movies Questions (15)
+            {
+                id: 16,
+                category: "Movies",
+                question: 'Who directed the movie "Inception"?',
+                options: ["Steven Spielberg", "Christopher Nolan", "Martin Scorsese", "Quentin Tarantino"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 17,
+                category: "Movies",
+                question: "Which movie won the Academy Award for Best Picture in 2020?",
+                options: ["1917", "Joker", "Parasite", "Once Upon a Time in Hollywood"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 18,
+                category: "Movies",
+                question: "In which movie did Tom Hanks play a character named Forrest?",
+                options: ["Cast Away", "Philadelphia", "Forrest Gump", "Big"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 19,
+                category: "Movies",
+                question: 'Who played the main character in "The Matrix"?',
+                options: ["Brad Pitt", "Keanu Reeves", "Will Smith", "Tom Cruise"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 20,
+                category: "Movies",
+                question: 'Which movie features the quote "May the Force be with you"?',
+                options: ["Star Trek", "Star Wars", "Guardians of the Galaxy", "Interstellar"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 21,
+                category: "Movies",
+                question: 'Who directed "Pulp Fiction"?',
+                options: ["Martin Scorsese", "Quentin Tarantino", "Steven Spielberg", "Francis Ford Coppola"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 22,
+                category: "Movies",
+                question: 'In "The Lord of the Rings", what is the name of Gandalf\'s horse?',
+                options: ["Shadowfax", "Roach", "Bucephalus", "Pegasus"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 23,
+                category: "Movies",
+                question: 'Which actor played Jack in "Titanic"?',
+                options: ["Brad Pitt", "Leonardo DiCaprio", "Matt Damon", "Johnny Depp"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 24,
+                category: "Movies",
+                question: 'What is the highest-grossing film of all time?',
+                options: ["Titanic", "Avatar", "Avengers: Endgame", "Star Wars: The Force Awakens"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 25,
+                category: "Movies",
+                question: 'Who played the Joker in "The Dark Knight"?',
+                options: ["Jack Nicholson", "Heath Ledger", "Joaquin Phoenix", "Jared Leto"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 26,
+                category: "Movies",
+                question: 'Which movie features the song "My Heart Will Go On"?',
+                options: ["The Bodyguard", "Titanic", "Ghost", "Dirty Dancing"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 27,
+                category: "Movies",
+                question: 'In which movie does the character say "I\'ll be back"?',
+                options: ["Predator", "Conan the Barbarian", "The Terminator", "Total Recall"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 28,
+                category: "Movies",
+                question: 'Who directed "Jaws"?',
+                options: ["George Lucas", "Steven Spielberg", "Martin Scorsese", "Francis Ford Coppola"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 29,
+                category: "Movies",
+                question: 'Which movie won the first ever Academy Award for Best Picture?',
+                options: ["Wings", "Sunrise", "The Jazz Singer", "7th Heaven"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 30,
+                category: "Movies",
+                question: 'In "Finding Nemo", what type of fish is Nemo?',
+                options: ["Angelfish", "Clownfish", "Goldfish", "Pufferfish"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+
+            // Logic Questions (15)
+            {
+                id: 31,
+                category: "Logic",
+                question: "What comes next in the sequence: 2, 6, 12, 20, 30, ?",
+                options: ["40", "42", "44", "46"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 32,
+                category: "Logic",
+                question: 'If A = 1, B = 2, C = 3, what does "CAB" equal?',
+                options: ["6", "321", "312", "123"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 33,
+                category: "Logic",
+                question: "If it takes 5 machines 5 minutes to make 5 widgets, how long would it take 100 machines to make 100 widgets?",
+                options: ["100 minutes", "20 minutes", "5 minutes", "1 minute"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 34,
+                category: "Logic",
+                question: "What is the next number in the sequence: 1, 1, 2, 3, 5, 8, ?",
+                options: ["11", "13", "15", "16"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 35,
+                category: "Logic",
+                question: "If all roses are flowers and some flowers fade quickly, which statement is true?",
+                options: ["All roses fade quickly", "Some roses fade quickly", "No roses fade quickly", "Cannot be determined"],
+                correctAnswer: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 36,
+                category: "Logic",
+                question: "What comes next: O, T, T, F, F, S, S, E, ?",
+                options: ["N", "T", "E", "I"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 37,
+                category: "Logic",
+                question: "If you have a 3-gallon jug and a 5-gallon jug, how can you measure exactly 4 gallons?",
+                options: ["Fill 5, pour into 3, empty 3, pour remaining 2 from 5 into 3, fill 5, pour into 3 until full", "Fill 3 twice", "Fill 5, drink 1 gallon", "Impossible"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 38,
+                category: "Logic",
+                question: "What is the missing number: 2, 6, 12, 20, 30, 42, ?",
+                options: ["54", "56", "58", "60"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 39,
+                category: "Logic",
+                question: "If today is Monday, what day will it be 100 days from now?",
+                options: ["Monday", "Tuesday", "Wednesday", "Thursday"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 40,
+                category: "Logic",
+                question: "What comes next in the pattern: 1, 4, 9, 16, 25, ?",
+                options: ["30", "35", "36", "49"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 41,
+                category: "Logic",
+                question: "If you rearrange the letters 'CIFAIPC', you would have the name of a:",
+                options: ["City", "Animal", "Ocean", "Country"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 42,
+                category: "Logic",
+                question: "What is the next letter in this sequence: J, F, M, A, M, J, J, A, S, O, N, ?",
+                options: ["D", "J", "M", "Y"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 43,
+                category: "Logic",
+                question: "If 2 + 3 = 10, 7 + 2 = 63, 6 + 5 = 66, then 8 + 4 = ?",
+                options: ["96", "84", "48", "32"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 44,
+                category: "Logic",
+                question: "What number should replace the question mark: 4, 7, 11, 18, 29, ?",
+                options: ["47", "43", "41", "39"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 45,
+                category: "Logic",
+                question: "If you multiply me by any other number, the answer will always be the same. What number am I?",
+                options: ["0", "1", "10", "100"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+
+            // Science Questions (15)
+            {
+                id: 46,
+                category: "Science",
+                question: "What is the chemical symbol for gold?",
+                options: ["Go", "Gd", "Au", "Ag"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 47,
+                category: "Science",
+                question: "How many bones are in the adult human body?",
+                options: ["206", "208", "210", "212"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 48,
+                category: "Science",
+                question: "What planet is known as the Red Planet?",
+                options: ["Venus", "Jupiter", "Mars", "Saturn"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 49,
+                category: "Science",
+                question: "Which gas makes up about 78% of Earth's atmosphere?",
+                options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Argon"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 50,
+                category: "Science",
+                question: "What is the hardest natural substance on Earth?",
+                options: ["Gold", "Iron", "Diamond", "Quartz"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 51,
+                category: "Science",
+                question: "What is the speed of light in a vacuum?",
+                options: ["300,000 km/s", "150,000 km/s", "299,792,458 m/s", "186,000 miles/s"],
+                correctAnswer: 2,
+                difficulty: "hard"
+            },
+            {
+                id: 52,
+                category: "Science",
+                question: "What is the chemical formula for water?",
+                options: ["H2O", "CO2", "NaCl", "CH4"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 53,
+                category: "Science",
+                question: "Which organ in the human body produces insulin?",
+                options: ["Liver", "Kidney", "Pancreas", "Heart"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 54,
+                category: "Science",
+                question: "What is the smallest unit of matter?",
+                options: ["Molecule", "Atom", "Proton", "Electron"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 55,
+                category: "Science",
+                question: "How many chambers does a human heart have?",
+                options: ["2", "3", "4", "5"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 56,
+                category: "Science",
+                question: "What type of animal is a Komodo dragon?",
+                options: ["Snake", "Lizard", "Crocodile", "Turtle"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 57,
+                category: "Science",
+                question: "What is the most abundant gas in the universe?",
+                options: ["Oxygen", "Nitrogen", "Hydrogen", "Helium"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 58,
+                category: "Science",
+                question: "Which scientist developed the theory of evolution?",
+                options: ["Isaac Newton", "Albert Einstein", "Charles Darwin", "Galileo Galilei"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 59,
+                category: "Science",
+                question: "What is the pH of pure water?",
+                options: ["6", "7", "8", "9"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 60,
+                category: "Science",
+                question: "Which planet has the most moons?",
+                options: ["Jupiter", "Saturn", "Uranus", "Neptune"],
+                correctAnswer: 1,
+                difficulty: "hard"
+            },
+
+            // Geography Questions (15)
+            {
+                id: 61,
+                category: "Geography",
+                question: "What is the capital of Australia?",
+                options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 62,
+                category: "Geography",
+                question: "Which is the longest river in the world?",
+                options: ["Amazon River", "Nile River", "Mississippi River", "Yangtze River"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 63,
+                category: "Geography",
+                question: "What is the smallest country in the world?",
+                options: ["Monaco", "San Marino", "Vatican City", "Liechtenstein"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 64,
+                category: "Geography",
+                question: "Which mountain range contains Mount Everest?",
+                options: ["Andes", "Rocky Mountains", "Alps", "Himalayas"],
+                correctAnswer: 3,
+                difficulty: "easy"
+            },
+            {
+                id: 65,
+                category: "Geography",
+                question: "What is the largest desert in the world?",
+                options: ["Sahara Desert", "Gobi Desert", "Antarctica", "Arabian Desert"],
+                correctAnswer: 2,
+                difficulty: "hard"
+            },
+            {
+                id: 66,
+                category: "Geography",
+                question: "Which country has the most time zones?",
+                options: ["Russia", "United States", "China", "Canada"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 67,
+                category: "Geography",
+                question: "What is the capital of Canada?",
+                options: ["Toronto", "Vancouver", "Montreal", "Ottawa"],
+                correctAnswer: 3,
+                difficulty: "easy"
+            },
+            {
+                id: 68,
+                category: "Geography",
+                question: "Which ocean is the largest?",
+                options: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+                correctAnswer: 3,
+                difficulty: "easy"
+            },
+            {
+                id: 69,
+                category: "Geography",
+                question: "What is the highest waterfall in the world?",
+                options: ["Niagara Falls", "Angel Falls", "Victoria Falls", "Iguazu Falls"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 70,
+                category: "Geography",
+                question: "Which African country was never colonized?",
+                options: ["Kenya", "Ethiopia", "Ghana", "Nigeria"],
+                correctAnswer: 1,
+                difficulty: "hard"
+            },
+            {
+                id: 71,
+                category: "Geography",
+                question: "What is the deepest point on Earth?",
+                options: ["Mariana Trench", "Puerto Rico Trench", "Java Trench", "Peru-Chile Trench"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 72,
+                category: "Geography",
+                question: "Which country is both in Europe and Asia?",
+                options: ["Russia", "Turkey", "Kazakhstan", "All of the above"],
+                correctAnswer: 3,
+                difficulty: "medium"
+            },
+            {
+                id: 73,
+                category: "Geography",
+                question: "What is the largest island in the world?",
+                options: ["Madagascar", "Greenland", "New Guinea", "Borneo"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 74,
+                category: "Geography",
+                question: "Which city is known as the 'City of Love'?",
+                options: ["Rome", "Venice", "Paris", "Vienna"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 75,
+                category: "Geography",
+                question: "What is the driest place on Earth?",
+                options: ["Death Valley", "Sahara Desert", "Atacama Desert", "Antarctic Desert"],
+                correctAnswer: 2,
+                difficulty: "hard"
+            },
+
+            // History Questions (15)
+            {
+                id: 76,
+                category: "History",
+                question: "In which year did World War II end?",
+                options: ["1944", "1945", "1946", "1947"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 77,
+                category: "History",
+                question: "Who was the first person to walk on the moon?",
+                options: ["Buzz Aldrin", "Neil Armstrong", "John Glenn", "Alan Shepard"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 78,
+                category: "History",
+                question: "Who painted the ceiling of the Sistine Chapel?",
+                options: ["Leonardo da Vinci", "Raphael", "Michelangelo", "Donatello"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 79,
+                category: "History",
+                question: "In which year did the Berlin Wall fall?",
+                options: ["1987", "1988", "1989", "1990"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 80,
+                category: "History",
+                question: "Which ancient wonder of the world was located in Alexandria?",
+                options: ["Hanging Gardens", "Colossus of Rhodes", "Lighthouse of Alexandria", "Temple of Artemis"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 81,
+                category: "History",
+                question: "Who was the first President of the United States?",
+                options: ["Thomas Jefferson", "John Adams", "George Washington", "Benjamin Franklin"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 82,
+                category: "History",
+                question: "In which year did the Titanic sink?",
+                options: ["1910", "1911", "1912", "1913"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 83,
+                category: "History",
+                question: "Which empire was ruled by Julius Caesar?",
+                options: ["Greek Empire", "Roman Empire", "Byzantine Empire", "Ottoman Empire"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 84,
+                category: "History",
+                question: "Who invented the printing press?",
+                options: ["Leonardo da Vinci", "Johannes Gutenberg", "Benjamin Franklin", "Thomas Edison"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 85,
+                category: "History",
+                question: "Which war was fought between the North and South in America?",
+                options: ["Revolutionary War", "War of 1812", "Civil War", "Spanish-American War"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 86,
+                category: "History",
+                question: "Who was known as the 'Iron Lady'?",
+                options: ["Queen Elizabeth II", "Margaret Thatcher", "Golda Meir", "Indira Gandhi"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 87,
+                category: "History",
+                question: "In which year did the French Revolution begin?",
+                options: ["1789", "1790", "1791", "1792"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 88,
+                category: "History",
+                question: "Which Egyptian queen was known for her relationships with Julius Caesar and Mark Antony?",
+                options: ["Nefertiti", "Hatshepsut", "Cleopatra", "Ankhesenamun"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 89,
+                category: "History",
+                question: "What was the name of the ship on which Charles Darwin made his famous voyage?",
+                options: ["HMS Victory", "HMS Beagle", "HMS Endeavour", "HMS Bounty"],
+                correctAnswer: 1,
+                difficulty: "hard"
+            },
+            {
+                id: 90,
+                category: "History",
+                question: "Which city was the capital of the Byzantine Empire?",
+                options: ["Rome", "Athens", "Constantinople", "Alexandria"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+
+            // Sports Questions (15)
+            {
+                id: 91,
+                category: "Sports",
+                question: "How many players are on a basketball team on the court at one time?",
+                options: ["4", "5", "6", "7"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 92,
+                category: "Sports",
+                question: "In which sport would you perform a slam dunk?",
+                options: ["Volleyball", "Tennis", "Basketball", "Baseball"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 93,
+                category: "Sports",
+                question: "How often are the Summer Olympic Games held?",
+                options: ["Every 2 years", "Every 3 years", "Every 4 years", "Every 5 years"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 94,
+                category: "Sports",
+                question: "What is the maximum score possible in ten-pin bowling?",
+                options: ["200", "250", "300", "350"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 95,
+                category: "Sports",
+                question: "In soccer, what body part can't touch the ball (except for goalkeepers)?",
+                options: ["Hands", "Arms", "Both hands and arms", "Head"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 96,
+                category: "Sports",
+                question: "How many holes are played in a standard round of golf?",
+                options: ["16", "18", "20", "22"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 97,
+                category: "Sports",
+                question: "In tennis, what is the term for a score of zero?",
+                options: ["Nil", "Zero", "Love", "Nothing"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 98,
+                category: "Sports",
+                question: "Which country has won the most FIFA World Cups?",
+                options: ["Germany", "Argentina", "Brazil", "Italy"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 99,
+                category: "Sports",
+                question: "In American football, how many points is a touchdown worth?",
+                options: ["3", "6", "7", "8"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 100,
+                category: "Sports",
+                question: "What is the diameter of a basketball hoop in inches?",
+                options: ["16", "17", "18", "19"],
+                correctAnswer: 2,
+                difficulty: "hard"
+            },
+            {
+                id: 101,
+                category: "Sports",
+                question: "In which sport do you use a shuttlecock?",
+                options: ["Tennis", "Badminton", "Squash", "Table Tennis"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 102,
+                category: "Sports",
+                question: "How many players are on a baseball team's active roster?",
+                options: ["23", "25", "26", "28"],
+                correctAnswer: 2,
+                difficulty: "hard"
+            },
+            {
+                id: 103,
+                category: "Sports",
+                question: "What is the length of a marathon in miles?",
+                options: ["24.2", "25.2", "26.2", "27.2"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 104,
+                category: "Sports",
+                question: "In ice hockey, how many players from each team are on the ice at one time?",
+                options: ["5", "6", "7", "8"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 105,
+                category: "Sports",
+                question: "Which sport is known as 'The Sport of Kings'?",
+                options: ["Polo", "Horse Racing", "Cricket", "Tennis"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+
+            // Technology Questions (15)
+            {
+                id: 106,
+                category: "Technology",
+                question: "What does 'WWW' stand for?",
+                options: ["World Wide Web", "World Wide Website", "Web World Wide", "Website World Wide"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 107,
+                category: "Technology",
+                question: "Who founded Microsoft?",
+                options: ["Steve Jobs", "Bill Gates", "Mark Zuckerberg", "Larry Page"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 108,
+                category: "Technology",
+                question: "What does 'AI' stand for in technology?",
+                options: ["Automated Intelligence", "Artificial Intelligence", "Advanced Intelligence", "Applied Intelligence"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 109,
+                category: "Technology",
+                question: "Which programming language is known as the 'language of the web'?",
+                options: ["Python", "Java", "JavaScript", "C++"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 110,
+                category: "Technology",
+                question: "What does 'URL' stand for?",
+                options: ["Universal Resource Locator", "Uniform Resource Locator", "Universal Reference Link", "Uniform Reference Link"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 111,
+                category: "Technology",
+                question: "Who founded Apple Inc.?",
+                options: ["Bill Gates", "Steve Jobs and Steve Wozniak", "Mark Zuckerberg", "Larry Page and Sergey Brin"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 112,
+                category: "Technology",
+                question: "What does 'CPU' stand for?",
+                options: ["Central Processing Unit", "Computer Processing Unit", "Central Program Unit", "Computer Program Unit"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 113,
+                category: "Technology",
+                question: "Which company developed the Android operating system?",
+                options: ["Apple", "Microsoft", "Google", "Samsung"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 114,
+                category: "Technology",
+                question: "What does 'RAM' stand for?",
+                options: ["Random Access Memory", "Read Access Memory", "Rapid Access Memory", "Real Access Memory"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 115,
+                category: "Technology",
+                question: "In what year was the first iPhone released?",
+                options: ["2006", "2007", "2008", "2009"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 116,
+                category: "Technology",
+                question: "What does 'USB' stand for?",
+                options: ["Universal Serial Bus", "Universal System Bus", "United Serial Bus", "United System Bus"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 117,
+                category: "Technology",
+                question: "Which social media platform was founded by Mark Zuckerberg?",
+                options: ["Twitter", "Instagram", "Facebook", "LinkedIn"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 118,
+                category: "Technology",
+                question: "What does 'Wi-Fi' stand for?",
+                options: ["Wireless Fidelity", "Wireless Frequency", "Wide Fidelity", "It doesn't stand for anything"],
+                correctAnswer: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 119,
+                category: "Technology",
+                question: "Which programming language was developed by Guido van Rossum?",
+                options: ["Java", "Python", "C++", "Ruby"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 120,
+                category: "Technology",
+                question: "What does 'HTML' stand for?",
+                options: ["Hyper Text Markup Language", "High Tech Markup Language", "Home Tool Markup Language", "Hyperlink Text Markup Language"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+
+            // Music Questions (15)
+            {
+                id: 121,
+                category: "Music",
+                question: "How many strings does a standard guitar have?",
+                options: ["4", "5", "6", "7"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 122,
+                category: "Music",
+                question: "Which instrument has 88 keys?",
+                options: ["Organ", "Piano", "Harpsichord", "Accordion"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 123,
+                category: "Music",
+                question: "What does 'forte' mean in music?",
+                options: ["Soft", "Loud", "Fast", "Slow"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 124,
+                category: "Music",
+                question: "Which Beatles album features the song 'Come Together'?",
+                options: ["Abbey Road", "Let It Be", "White Album", "Sgt. Pepper's"],
+                correctAnswer: 0,
+                difficulty: "hard"
+            },
+            {
+                id: 125,
+                category: "Music",
+                question: "How many lines are there in a musical staff?",
+                options: ["4", "5", "6", "7"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 126,
+                category: "Music",
+                question: "Which composer wrote 'The Four Seasons'?",
+                options: ["Bach", "Mozart", "Vivaldi", "Beethoven"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 127,
+                category: "Music",
+                question: "What is the highest female singing voice?",
+                options: ["Alto", "Soprano", "Mezzo-soprano", "Contralto"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 128,
+                category: "Music",
+                question: "Which instrument is Yo-Yo Ma famous for playing?",
+                options: ["Violin", "Piano", "Cello", "Flute"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 129,
+                category: "Music",
+                question: "How many beats are in a whole note?",
+                options: ["2", "3", "4", "8"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 130,
+                category: "Music",
+                question: "Which band released the album 'Dark Side of the Moon'?",
+                options: ["Led Zeppelin", "Pink Floyd", "The Beatles", "Queen"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 131,
+                category: "Music",
+                question: "What does 'piano' mean in musical terms?",
+                options: ["Loud", "Soft", "Fast", "Slow"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 132,
+                category: "Music",
+                question: "Which country is famous for inventing the tango?",
+                options: ["Spain", "Brazil", "Argentina", "Mexico"],
+                correctAnswer: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 133,
+                category: "Music",
+                question: "How many symphonies did Beethoven compose?",
+                options: ["8", "9", "10", "11"],
+                correctAnswer: 1,
+                difficulty: "hard"
+            },
+            {
+                id: 134,
+                category: "Music",
+                question: "Which instrument family does the trumpet belong to?",
+                options: ["Woodwind", "Brass", "Percussion", "String"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 135,
+                category: "Music",
+                question: "What is the term for a group of four musicians?",
+                options: ["Trio", "Quartet", "Quintet", "Ensemble"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+
+            // Literature Questions (15)
+            {
+                id: 136,
+                category: "Literature",
+                question: "Who wrote 'Romeo and Juliet'?",
+                options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 137,
+                category: "Literature",
+                question: "What is the first book in the Harry Potter series?",
+                options: ["Chamber of Secrets", "Prisoner of Azkaban", "Philosopher's Stone", "Goblet of Fire"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 138,
+                category: "Literature",
+                question: "Who wrote '1984'?",
+                options: ["Aldous Huxley", "George Orwell", "Ray Bradbury", "Kurt Vonnegut"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 139,
+                category: "Literature",
+                question: "In which Shakespeare play does the character Hamlet appear?",
+                options: ["Macbeth", "Othello", "King Lear", "Hamlet"],
+                correctAnswer: 3,
+                difficulty: "easy"
+            },
+            {
+                id: 140,
+                category: "Literature",
+                question: "Who wrote 'Pride and Prejudice'?",
+                options: ["Charlotte Brontë", "Emily Brontë", "Jane Austen", "George Eliot"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 141,
+                category: "Literature",
+                question: "What is the first line of Charles Dickens' 'A Tale of Two Cities'?",
+                options: ["Call me Ishmael", "It was the best of times, it was the worst of times", "In a hole in the ground there lived a hobbit", "All happy families are alike"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 142,
+                category: "Literature",
+                question: "Who wrote 'The Great Gatsby'?",
+                options: ["Ernest Hemingway", "F. Scott Fitzgerald", "John Steinbeck", "William Faulkner"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 143,
+                category: "Literature",
+                question: "In which novel would you find the character Atticus Finch?",
+                options: ["To Kill a Mockingbird", "Of Mice and Men", "The Grapes of Wrath", "One Flew Over the Cuckoo's Nest"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            },
+            {
+                id: 144,
+                category: "Literature",
+                question: "Who wrote 'The Lord of the Rings'?",
+                options: ["C.S. Lewis", "J.R.R. Tolkien", "George R.R. Martin", "Terry Pratchett"],
+                correctAnswer: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 145,
+                category: "Literature",
+                question: "What is the name of Sherlock Holmes' assistant?",
+                options: ["Dr. Watson", "Inspector Lestrade", "Mrs. Hudson", "Professor Moriarty"],
+                correctAnswer: 0,
+                difficulty: "easy"
+            },
+            {
+                id: 146,
+                category: "Literature",
+                question: "Who wrote 'Moby Dick'?",
+                options: ["Mark Twain", "Herman Melville", "Nathaniel Hawthorne", "Edgar Allan Poe"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 147,
+                category: "Literature",
+                question: "In Greek mythology, who is the king of the gods?",
+                options: ["Poseidon", "Hades", "Zeus", "Apollo"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 148,
+                category: "Literature",
+                question: "Who wrote 'Brave New World'?",
+                options: ["George Orwell", "Aldous Huxley", "Ray Bradbury", "Philip K. Dick"],
+                correctAnswer: 1,
+                difficulty: "medium"
+            },
+            {
+                id: 149,
+                category: "Literature",
+                question: "What is the name of the hobbit in J.R.R. Tolkien's 'The Hobbit'?",
+                options: ["Frodo Baggins", "Samwise Gamgee", "Bilbo Baggins", "Peregrin Took"],
+                correctAnswer: 2,
+                difficulty: "easy"
+            },
+            {
+                id: 150,
+                category: "Literature",
+                question: "Who wrote 'The Catcher in the Rye'?",
+                options: ["J.D. Salinger", "Harper Lee", "Truman Capote", "Kurt Vonnegut"],
+                correctAnswer: 0,
+                difficulty: "medium"
+            }
+        ];
+
+        // Badge definitions
+        const badges = [
+            {
+                id: "perfect-score",
+                name: "Perfect Score",
+                description: "Answer all questions correctly!",
+                icon: "🏆",
+                requirement: (score, total) => score === total
+            },
+            {
+                id: "speed-demon", 
+                name: "Speed Demon",
+                description: "Complete quiz in under 2 minutes",
+                icon: "⚡",
+                requirement: (score, total, time) => time < 120000
+            },
+            {
+                id: "knowledge-seeker",
+                name: "Knowledge Seeker", 
+                description: "Score 80% or higher",
+                icon: "🧠",
+                requirement: (score, total) => (score / total) >= 0.8
+            }
+        ];
+
+        // Game state
+        let currentQuiz = {
+            questions: [],
+            currentQuestionIndex: 0,
+            score: 0,
+            timeLeft: 15,
+            isActive: false,
+            selectedAnswer: null,
+            showResult: false,
+            startTime: 0,
+            category: "All",
+            questionCount: 10
+        };
+
+        let timer = null;
+
+        // DOM elements
+        const screens = {
+            menu: document.getElementById('menu-screen'),
+            quiz: document.getElementById('quiz-screen'),
+            results: document.getElementById('results-screen'),
+            leaderboard: document.getElementById('leaderboard-screen')
+        };
+
+        // Utility functions
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function randomizeQuestionOptions(question) {
+            const correctAnswer = question.options[question.correctAnswer];
+            const shuffledOptions = shuffleArray(question.options);
+            const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+            
+            return {
+                ...question,
+                options: shuffledOptions,
+                correctAnswer: newCorrectIndex
+            };
+        }
+
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+            screens[screenName].classList.remove('hidden');
+        }
+
+        function formatTime(milliseconds) {
+            const minutes = Math.floor(milliseconds / 60000);
+            const seconds = Math.floor((milliseconds % 60000) / 1000);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'][Math.floor(Math.random() * 5)];
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        // Quiz functions
+        function initializeQuiz() {
+            const category = document.getElementById('category-select').value;
+            const questionCount = parseInt(document.getElementById('question-count').value);
+            
+            // Filter questions by category
+            let filteredQuestions = category === 'All' ? 
+                [...questionBank] : 
+                questionBank.filter(q => q.category === category);
+            
+            // Randomize questions and options
+            filteredQuestions = shuffleArray(filteredQuestions);
+            filteredQuestions = filteredQuestions.slice(0, Math.min(questionCount, filteredQuestions.length));
+            filteredQuestions = filteredQuestions.map(randomizeQuestionOptions);
+            
+            currentQuiz = {
+                questions: filteredQuestions,
+                currentQuestionIndex: 0,
+                score: 0,
+                timeLeft: 15,
+                isActive: true,
+                selectedAnswer: null,
+                showResult: false,
+                startTime: Date.now(),
+                category: category,
+                questionCount: questionCount
+            };
+            
+            showScreen('quiz');
+            displayQuestion();
+            startTimer();
+        }
+
+        function displayQuestion() {
+            const question = currentQuiz.questions[currentQuiz.currentQuestionIndex];
+            if (!question) return;
+            
+            // Update question info
+            document.getElementById('question-number').textContent = 
+                `Question ${currentQuiz.currentQuestionIndex + 1} of ${currentQuiz.questions.length}`;
+            document.getElementById('category-badge').textContent = question.category;
+            document.getElementById('current-score').textContent = currentQuiz.score;
+            
+            // Update progress
+            const progress = ((currentQuiz.currentQuestionIndex + 1) / currentQuiz.questions.length) * 100;
+            document.getElementById('progress-fill').style.width = progress + '%';
+            
+            // Display question
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Display options
+            const optionsGrid = document.getElementById('options-grid');
+            optionsGrid.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'option-btn';
+                optionBtn.innerHTML = `
+                    <div class="option-letter">${String.fromCharCode(65 + index)}</div>
+                    <div>${option}</div>
+                `;
+                optionBtn.onclick = () => selectAnswer(index);
+                optionsGrid.appendChild(optionBtn);
+            });
+            
+            // Hide result animation
+            document.getElementById('result-animation').classList.add('hidden');
+        }
+
+        function selectAnswer(answerIndex) {
+            if (currentQuiz.showResult) return;
+            
+            currentQuiz.selectedAnswer = answerIndex;
+            currentQuiz.showResult = true;
+            currentQuiz.isActive = false;
+            
+            clearInterval(timer);
+            
+            const question = currentQuiz.questions[currentQuiz.currentQuestionIndex];
+            const isCorrect = answerIndex === question.correctAnswer;
+            
+            // Update score
+            if (isCorrect) {
+                currentQuiz.score++;
+            }
+            
+            // Show result animation
+            const resultAnimation = document.getElementById('result-animation');
+            const resultEmoji = document.getElementById('result-emoji');
+            const resultText = document.getElementById('result-text');
+            
+            if (isCorrect) {
+                resultEmoji.textContent = '🎉';
+                resultText.textContent = 'Correct!';
+                resultText.className = 'result-text result-correct';
+            } else if (answerIndex === -1) {
+                resultEmoji.textContent = '⏰';
+                resultText.textContent = "Time's up!";
+                resultText.className = 'result-text result-wrong';
+            } else {
+                resultEmoji.textContent = '😔';
+                resultText.textContent = 'Incorrect!';
+                resultText.className = 'result-text result-wrong';
+            }
+            
+            resultAnimation.classList.remove('hidden');
+            
+            // Update option styles
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.correctAnswer) {
+                    btn.classList.add('option-correct');
+                } else if (index === answerIndex && answerIndex !== question.correctAnswer) {
+                    btn.classList.add('option-wrong');
+                }
+            });
+            
+            // Auto advance to next question or results
+            setTimeout(() => {
+                currentQuiz.currentQuestionIndex++;
+                
+                if (currentQuiz.currentQuestionIndex >= currentQuiz.questions.length) {
+                    showResults();
+                } else {
+                    currentQuiz.timeLeft = 15;
+                    currentQuiz.isActive = true;
+                    currentQuiz.selectedAnswer = null;
+                    currentQuiz.showResult = false;
+                    displayQuestion();
+                    startTimer();
+                }
+            }, 2000);
+        }
+
+        function startTimer() {
+            const timerCircle = document.getElementById('timer-circle');
+            const timerProgress = document.getElementById('timer-progress');
+            
+            timer = setInterval(() => {
+                currentQuiz.timeLeft--;
+                timerCircle.textContent = currentQuiz.timeLeft;
+                
+                const progress = (currentQuiz.timeLeft / 15) * 100;
+                timerProgress.style.width = progress + '%';
+                
+                if (currentQuiz.timeLeft <= 5) {
+                    timerCircle.classList.add('timer-warning');
+                } else {
+                    timerCircle.classList.remove('timer-warning');
+                }
+                
+                if (currentQuiz.timeLeft <= 0) {
+                    clearInterval(timer);
+                    selectAnswer(-1); // Time up
+                }
+            }, 1000);
+        }
+
+        function showResults() {
+            showScreen('results');
+            
+            const timeElapsed = Date.now() - currentQuiz.startTime;
+            const percentage = Math.round((currentQuiz.score / currentQuiz.questions.length) * 100);
+            
+            // Update results display
+            document.getElementById('correct-answers').textContent = currentQuiz.score;
+            document.getElementById('final-percentage').textContent = percentage + '%';
+            document.getElementById('time-taken').textContent = formatTime(timeElapsed);
+            
+            // Set emoji and message based on performance
+            const resultsEmoji = document.getElementById('results-emoji');
+            const motivationalMessage = document.getElementById('motivational-message');
+            
+            if (percentage === 100) {
+                resultsEmoji.textContent = '🏆';
+                motivationalMessage.textContent = "Perfect! You're a quiz master!";
+            } else if (percentage >= 80) {
+                resultsEmoji.textContent = '🌟';
+                motivationalMessage.textContent = "Excellent work! You're really smart!";
+            } else if (percentage >= 60) {
+                resultsEmoji.textContent = '👍';
+                motivationalMessage.textContent = "Good job! Keep learning!";
+            } else if (percentage >= 40) {
+                resultsEmoji.textContent = '💪';
+                motivationalMessage.textContent = "Not bad! Practice makes perfect!";
+            } else {
+                resultsEmoji.textContent = '🚀';
+                motivationalMessage.textContent = "Don't give up! Every expert was once a beginner!";
+            }
+            
+            // Check for badges
+            const earnedBadges = badges.filter(badge => {
+                if (badge.id === 'speed-demon') {
+                    return badge.requirement(currentQuiz.score, currentQuiz.questions.length, timeElapsed);
+                }
+                return badge.requirement(currentQuiz.score, currentQuiz.questions.length);
+            });
+            
+            if (earnedBadges.length > 0) {
+                const badgesSection = document.getElementById('badges-section');
+                const badgesGrid = document.getElementById('badges-grid');
+                
+                badgesGrid.innerHTML = '';
+                earnedBadges.forEach(badge => {
+                    const badgeElement = document.createElement('div');
+                    badgeElement.className = 'badge';
+                    badgeElement.innerHTML = `${badge.icon} ${badge.name}`;
+                    badgesGrid.appendChild(badgeElement);
+                });
+                
+                badgesSection.classList.remove('hidden');
+            }
+            
+            // Show confetti for good scores
+            if (percentage >= 70) {
+                createConfetti();
+            }
+        }
+
+        // Leaderboard functions
+        function getLeaderboard() {
+            const saved = localStorage.getItem('quiz-leaderboard');
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function saveToLeaderboard(playerName) {
+            const leaderboard = getLeaderboard();
+            const timeElapsed = Date.now() - currentQuiz.startTime;
+            
+            const entry = {
+                id: Date.now().toString(),
+                playerName: playerName,
+                score: currentQuiz.score,
+                totalQuestions: currentQuiz.questions.length,
+                category: currentQuiz.category,
+                timeElapsed: timeElapsed,
+                date: new Date().toISOString()
+            };
+            
+            leaderboard.push(entry);
+            
+            // Sort by percentage, then by time
+            leaderboard.sort((a, b) => {
+                const aPercentage = a.score / a.totalQuestions;
+                const bPercentage = b.score / b.totalQuestions;
+                if (aPercentage !== bPercentage) {
+                    return bPercentage - aPercentage;
+                }
+                return a.timeElapsed - b.timeElapsed;
+            });
+            
+            // Keep top 10
+            const topLeaderboard = leaderboard.slice(0, 10);
+            localStorage.setItem('quiz-leaderboard', JSON.stringify(topLeaderboard));
+        }
+
+        function displayLeaderboard() {
+            const leaderboard = getLeaderboard();
+            const content = document.getElementById('leaderboard-content');
+            
+            if (leaderboard.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No scores yet. Be the first to complete a quiz!</p>';
+                return;
+            }
+            
+            content.innerHTML = '';
+            leaderboard.forEach((entry, index) => {
+                const percentage = Math.round((entry.score / entry.totalQuestions) * 100);
+                const rankIcon = index === 0 ? '🏆' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}`;
+                
+                const item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.innerHTML = `
+                    <div style="display: flex; align-items: center;">
+                        <div class="leaderboard-rank">${rankIcon}</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${entry.playerName}</div>
+                            <div class="leaderboard-details">
+                                ${entry.category} • ${formatTime(entry.timeElapsed)} • ${new Date(entry.date).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-score">
+                        <div class="leaderboard-percentage">${percentage}%</div>
+                        <div style="font-size: 0.9rem; color: #666;">${entry.score}/${entry.totalQuestions}</div>
+                    </div>
+                `;
+                content.appendChild(item);
+            });
+        }
+
+        // Event listeners
+        document.getElementById('start-quiz-btn').addEventListener('click', initializeQuiz);
+
+        document.getElementById('view-leaderboard-btn').addEventListener('click', () => {
+            showScreen('leaderboard');
+            displayLeaderboard();
+        });
+
+        document.getElementById('back-to-menu-btn').addEventListener('click', () => {
+            showScreen('menu');
+        });
+
+        document.getElementById('restart-quiz-btn').addEventListener('click', () => {
+            showScreen('menu');
+        });
+
+        document.getElementById('share-results-btn').addEventListener('click', async () => {
+            const percentage = Math.round((currentQuiz.score / currentQuiz.questions.length) * 100);
+            const shareText = `I just scored ${currentQuiz.score}/${currentQuiz.questions.length} (${percentage}%) on the ${currentQuiz.category} quiz! 🎯`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'Quiz Results',
+                        text: shareText,
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                navigator.clipboard.writeText(shareText);
+                alert('Results copied to clipboard!');
+            }
+        });
+
+        document.getElementById('save-to-leaderboard-btn').addEventListener('click', () => {
+            document.getElementById('results-actions').classList.add('hidden');
+            document.getElementById('name-input-section').classList.remove('hidden');
+            document.getElementById('player-name').focus();
+        });
+
+        document.getElementById('save-score-btn').addEventListener('click', () => {
+            const playerName = document.getElementById('player-name').value.trim();
+            if (playerName) {
+                saveToLeaderboard(playerName);
+                document.getElementById('name-input-section').classList.add('hidden');
+                document.getElementById('results-actions').classList.remove('hidden');
+                document.getElementById('player-name').value = '';
+                alert('Score saved to leaderboard!');
+            }
+        });
+
+        document.getElementById('cancel-save-btn').addEventListener('click', () => {
+            document.getElementById('name-input-section').classList.add('hidden');
+            document.getElementById('results-actions').classList.remove('hidden');
+            document.getElementById('player-name').value = '';
+        });
+
+        // Allow Enter key to save score
+        document.getElementById('player-name').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('save-score-btn').click();
+            }
+        });
+
+        // Initialize the app
+        showScreen('menu');
+    </script>
+</body>
+</html>
